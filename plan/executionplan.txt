@@ -1,0 +1,13 @@
+Stages of implementation
+1. Single machine, no failure, no leader election
+    a. Message passing across multiple process
+    b. Protobuf message format ?
+    c. write log for each node
+    d. Read all logs to generate a sequence of what happened
+    e. Create a driver code such that it can read from a test case file and run it across nodes. Not clear on how we can simulte this across machines, but tbd.
+2. non-leader node failure.
+3. leader node failure
+4. multi-machine, no failure
+5. multi-machine, non-leader node failure
+6. multi-machine, leader node failure
+7. recovery?
