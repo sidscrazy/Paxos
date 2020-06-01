@@ -12,24 +12,75 @@
 
 #define NODES 5
 
+/* The PaxosController class handles initialization
+   of PaxosNodes and also simulates packet switching
+   between the nodes over a network. The PaxosController
+   is not a PaxosNode; it cannot vote on any proposal.
+
+   It is a convenient abstraction for the network and 
+   makes it easier to perform interprocess communication
+   having a single parent process with sockets to the children.
+   We believe that this model is able to simulate paxos without
+   loss of generality, since our primary goal of the project
+   was to create an effective simulator and not to dig into
+   the weeds of interprocess communication between two processes
+   that have to search for each other on the same machine.
+   Plus, a real world Paxos implementation would likely
+   know the other machines that it is communicating with
+   and would not have the additional trouble that an
+   implementation without this controller needs to deal
+   with in the process rather than server model of Paxos.
+*/
 class PaxosController {
 
 private:
 	std::vector<int> children;
-	std::vector<int*> sockets;
+	std::vector<int> sockets;
 	std::vector<std::thread> threads;
-	std::vector<std::mutex*> mutexes;
+	std::vector<std::mutex> mutexes;
 	int nodes;
+
+
+	/* Performs Packet Switching. */
 	void network_simulator (int id){
-		return;
+
+		message *m;
+		while (true){
+			mutexes[id].lock ();
+			m = receive_packet (sockets[id]);
+			mutexes[id].unlock ();
+			if (m != NULL){
+				int receiver = m->receiver;
+				
+				/* Broadcast Packet. */
+				if (receiver == -1) {
+					for (int i = 0; i < nodes; i++){
+						if (i != id){
+							mutexes[i].lock ();
+							m->receiver = i;
+							send_packet (sockets[i], m);
+							mutexes[i].unlock ();
+						}
+					}
+				/* Send to single recipient. */
+				} else {
+					mutexes[receiver].lock ();
+					send_packet (sockets[receiver], m);
+					mutexes[receiver].unlock ();
+				}
+				free (m);
+			}
+		}
 	}
+
+
 public:
 	PaxosController (int n){
 		nodes = n;
-		children.resize (n);
-		sockets.resize (n);
-		threads.resize (n);
-		mutexes.resize (n);
+		children = std::vector<int> (n);
+		sockets = std::vector<int> (n);
+		threads = std::vector<std::thread> (n);
+		mutexes = std::vector<std::mutex> (n);
 
 		for (int i = 0; i < nodes; i++){
 			
@@ -43,13 +94,13 @@ public:
 				exit (1);
 			}
 
-			sockets[i] = s;
+			sockets[i] = s[0];
 
 			int pid = fork ();
 			if (pid == 0 ){
-				close (sockets[i][0]);
-				dup2 (sockets[i][1], 0);
-				dup2 (sockets[i][1], 1);
+				close (s[0]);
+				dup2 (s[1], 0);
+				dup2 (s[1], 1);
 				char *args[2];
 				args[0] = (char *)malloc (7);
 				if (args[0] == NULL){
@@ -61,8 +112,15 @@ public:
 				execvp (args[0], args);
 			} else {
 				children[i] = pid;
-				close (sockets[i][1]);
+				close (s[1]);
 			}
+
+			message init_message (i, PROPOSER & LEARNER, nodes, -1, init);
+			mutexes[i].lock ();
+			send_packet (sockets[i], &init_message);
+			mutexes[i].unlock ();
+
+			free (s);
 			threads[i] = std::thread ( [this, i] { this->network_simulator(i); } );
 		}
 
@@ -74,17 +132,12 @@ public:
 		char buf[1024];
 		std::cout << "Controller Exit Begin" << std::endl;
 		for (int i = 0; i < nodes ; i++){
-			waitpid (children[i], &status, 0);
-			read (sockets[i][0], buf, 8);
-			buf[8] = '\0';
-			std::cout << buf;
 			threads[i].join ();
+			waitpid (children[i], &status, 0);
 		}
 		std::cout << "Controller Exit End" << std::endl;
 	}
 };
-
-
 
 
 int main (){
