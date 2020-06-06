@@ -1,9 +1,7 @@
 #include <ctime>
 #include <fstream>
 #include<string>
-#include <sstream>
-#include <random>
-#include <string>
+
 using namespace  std;
 
 /*
@@ -20,27 +18,27 @@ class PaxosNodeLogger{
     private:
         ofstream myfile;
         string logfilename;
-        string nodeuniqueid;
+        int nodeuniqueid;
 
     private:
-        void SetLogFileName(string nodeguid);
+        void SetLogFileName(int nodeid);
         string GetLogFileName();
         int OpenLogFile(string logfilename);          // private to be used by init function to get a handle to the log file
         int AddLogFileHeader();
 
     public:
         // functions
-        PaxosNodeLogger(string nodeguid); // Init function to get a handle to the log file. Do we need to extract previous paxos run count?
+        PaxosNodeLogger(int nodeguid); // Init function to get a handle to the log file. Do we need to extract previous paxos run count?
         ~PaxosNodeLogger(); // destructor to closet the file handle
         int AddRowToLogFile(int nodeAlive, int N, string value, int nodeRole, int maxPromisedN, string consensusValue, int currentAction);
         void CloseLogFile();
 };
 
 // Constructor will open/create a log file with the guid as ts name, add header to the csv file and keep it open
-PaxosNodeLogger::PaxosNodeLogger(string nodeguid)
+PaxosNodeLogger::PaxosNodeLogger(int nodeid)
 {
-    nodeuniqueid = nodeguid;
-    SetLogFileName(nodeguid);
+    nodeuniqueid = nodeid;
+    SetLogFileName(nodeid);
     OpenLogFile(logfilename);
     AddLogFileHeader();
 }
@@ -53,9 +51,9 @@ PaxosNodeLogger::~PaxosNodeLogger(void)
 }
 
 // Sets the name of the file to be "guid.csv"
-void PaxosNodeLogger::SetLogFileName(string nodeguid)
+void PaxosNodeLogger::SetLogFileName(int nodeid)
 {
-    logfilename = nodeguid + ".csv";
+    logfilename = "nodelog" + to_string(nodeid) + ".csv";
 }
 
 // adds header to the logfile of current logger instance.
@@ -64,7 +62,7 @@ int PaxosNodeLogger::AddLogFileHeader(void)
     if (!myfile.is_open()) // should always be true
     {
         // Now add header to the file
-        myfile << "uniqueId" << ",";
+        myfile << "nodeid" << ",";
         //myfile << "currentState" << ","; // ???
         myfile << "N" << ",";
         myfile << "value" << ",";
@@ -117,33 +115,12 @@ int PaxosNodeLogger::AddRowToLogFile(int nodeAlive, int N, string value, int nod
     return 1;
 }
 
-unsigned int  random_char()
-{
-    random_device rd;
-    mt19937 gen(rd());
-    uniform_int_distribution<> dis(0, 255);
-    return dis(gen);
-}
-
-string generate_hex(const unsigned int len)
-{
-    stringstream ss;
-    for (auto i = 0; i < len; i++) {
-        const auto rc = random_char();
-        stringstream hexstream;
-        hexstream << hex << rc;
-        auto hex = hexstream.str();
-        ss << (hex.length() < 2 ? '0' + hex : hex);
-    }
-    return ss.str();
-}
-
 // create an instance of node logger and add two rows of logs to it
 // Not a member of PaxosNodeLogger class, so we have to instantiate the object
 int TestPaxosNodeLogger()
 {
-    string guid = generate_hex(16);
-    PaxosNodeLogger *plogger = new PaxosNodeLogger(guid);
+    int nodeid = 1;
+    PaxosNodeLogger *plogger = new PaxosNodeLogger(nodeid);
     //proposestart
     plogger->AddRowToLogFile(1, 1, NULL, 1, -1, NULL, 1);
     // propose end
