@@ -1,10 +1,19 @@
 #ifndef PAXOS_MESSAGE_H
 #define PAXOS_MESSAGE_H
+#include <memory.h>
+#define PROPOSER 1
+#define LEARNER  1 << 1
+#define ACCEPTOR 1 << 2
+#define ACK_ACC 1
+#define ACK_REJ 0
+#define NO_VALUE -1
+#define PREPARING -4
+#define CONSENSUS -2
+#define KILL_PROCESS -3
 
-#define PROPOSER 0x1
-#define LEARNER  0x1 << 1
-
-enum MSG_TYPE {init, proposal, proposal_ack};
+enum MSG_TYPE {MSG_INIT, MSG_PREPARE, MSG_PREPARE_ACK, 
+			   MSG_PROPOSE, MSG_PROPOSE_ACK, MSG_UPDATE,
+			   MSG_CONSENSUS, MSG_PING, MSG_TEARDOWN};
 
 struct message {
 	int sender;
@@ -20,7 +29,46 @@ struct message {
 		round = rnd;
 		type = ty;
 	}
+
+
 };
+void dump_message (message *m) {
+	std::cout << "Paxos Message Start" << std::endl;
+	std::cout << "Sender: " << m->sender << std::endl;
+	std::cout << "Receier: " << m->receiver << std::endl;
+	std::cout << "Value: " << m->value << std::endl;
+	std::cout << "Round: " << m->round << std::endl;
+	std::cout << "Type: " << m->type << std::endl;
+	std::cout << "Paxos Message End" << std::endl;
+}
+
+struct vote {
+	int node;
+	int n;
+	int v;
+
+	vote (int sender, int num, int val){
+		node = sender;
+		num = n;
+		val = v;
+	}
+};
+
+
+void ping (int fd){
+	message *m = (message *) malloc (sizeof (message));
+	if (m == NULL){
+		return;
+	}
+	m->sender = -1;
+	m->receiver = -1;
+	m->value = NO_VALUE;
+	m->round = -1;
+	m->type = MSG_PING;
+	write (fd, (char *)m, sizeof (message));
+	free (m);
+
+}
 
 message *receive_packet (int fd){
 	message *m = (message *) malloc (sizeof (message));

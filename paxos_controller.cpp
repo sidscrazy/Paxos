@@ -9,6 +9,7 @@
 #include <mutex>
 #include "paxos_message.h"
 #include <queue>
+#include <memory.h>
 
 #define NODES 5
 
@@ -38,6 +39,7 @@ private:
 	std::vector<int> sockets;
 	std::vector<std::thread> threads;
 	std::vector<std::mutex> mutexes;
+	std::mutex cout_mutex;
 	int nodes;
 
 
@@ -52,6 +54,11 @@ private:
 			if (m != NULL){
 				int receiver = m->receiver;
 				
+				if (m->type == MSG_TEARDOWN) {
+					free (m);
+					return;
+				}
+
 				/* Broadcast Packet. */
 				if (receiver == -1) {
 					for (int i = 0; i < nodes; i++){
@@ -68,7 +75,13 @@ private:
 					send_packet (sockets[receiver], m);
 					mutexes[receiver].unlock ();
 				}
+
+				m->receiver = receiver;
+				cout_mutex.lock ();
+				dump_message (m);
+				cout_mutex.unlock ();
 				free (m);
+
 			}
 		}
 	}
@@ -115,11 +128,15 @@ public:
 				close (s[1]);
 			}
 
-			message init_message (i, PROPOSER & LEARNER, nodes, -1, init);
+			int role = ACCEPTOR;
+			if (i == 0){
+				role |= PROPOSER;
+				role |= LEARNER;
+			}
+			message init_message (i, role, nodes, -1, MSG_INIT);
 			mutexes[i].lock ();
 			send_packet (sockets[i], &init_message);
 			mutexes[i].unlock ();
-
 			free (s);
 			threads[i] = std::thread ( [this, i] { this->network_simulator(i); } );
 		}
