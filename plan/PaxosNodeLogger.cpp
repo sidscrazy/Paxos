@@ -1,40 +1,110 @@
-// This file contains various classes and their functionality
-// This class is used by each node to log its various states. In the end, we should be able to merge all the logs generated from various nodes to understand the replay of the consensus algorithm.
-// Q. Should logging happen when the node is in crashed state. Eg only the fact that it received a propose request from a leader.
-// Logging is done by this class in form of rows where each row has these values
-// PaxosRunInstanceCount: Incremental int. How do we set run instance count? One option is to send one broadcast from leader setting a common instance count for all nodes. This will also return back to the leader about how many nodes are present in first place. But majority should be static and pre-configured value and not decided on the run. TODO
+#include <ctime>
+#include <fstream>
+#include<string>
+
+using namespace  std;
+
+/*
+This file holds the class to manage the log file for each node. This each node will have its own instance of PaxosNodeLogger
+and each such instance will point to its own log file.
+Just call two functions to use this logger:
+PaxosNodeLOgger p1 = new PaxosNodeLogger(guid) // instantiate by passing a guid to constructor
+AddRowToLogFile()                              // pass required values to log next row of data in the log file.
+                                               // Values and datatypes to pass is understood from function signature.
+*/
+
 class PaxosNodeLogger{
     // variables
-        int NodeRole;           //Proposer, acceptor, learner.Enu
-        int MaxPromisedValue;    // Int value representing the maximum value Promised by the current node.In case of proposer, or at init, it is set to - 1.
-        int MaxAcceptedValue;    // Maximum value accepted by the node.
-        int ConsensusValue;     // Consensus value finalized by proposer or received by Acceptors and Learners
-        int NodeState;          // Live, Crashed.When in crashed state, the logged values must conform to situation where node is not communicating.So we log receipt of message but don't send anything.
+    private:
+        ofstream myfile;
+        string logfilename;
+        string nodeuniqueid;
 
-    // functions
-        PaxosNodeLogger(void) {}; // Init function to get a handle to the log file. Do we need to extract previous paxos run count?
-        ~PaxosNodeLogger(void) {}; // destructor to closet the file handle
-
-        int OpenFile();          // private to be used by init function to get a handle to the log file
+    private:
+        void SetLogFileName(string nodeguid);
+        string GetLogFileName();
+        int OpenLogFile(string logfilename);          // private to be used by init function to get a handle to the log file
+        int AddLogFileHeader();
         int CloseLogFile();      // also called by destructor
 
-        int GetRole();           // proposer, accepter, learner, crashed. Crashed state is only for simulation, original algorithm supports the role.
-        int SetRole(); //
+    public:
+        // functions
+        PaxosNodeLogger(string nodeguid); // Init function to get a handle to the log file. Do we need to extract previous paxos run count?
+        ~PaxosNodeLogger(); // destructor to closet the file handle
 
-        // State changes for the node itself logged in next few functions
+        int AddRowToLogFile(int nodeAlive, int N, string value, int nodeRole, int maxPromisedN, string consensusValue, int currentAction);
+};
 
-        int StartPaxosRun(); // Q. Does this happen with promise() message from the leader or before that? Paxos algorithm itself doesn’t allow anything called init, so avoid.
-        int EndPaxosRun();
+// Constructor will open/create a log file with the guid as ts name, add header to the csv file and keep it open
+PaxosNodeLogger::PaxosNodeLogger(string nodeguid)
+{
+    nodeuniqueid = nodeguid;
+    SetLogFileName(nodeguid);
+    OpenLogFile(logfilename);
+    AddLogFileHeader();
+}
 
-        int PromiseStart(); // Logged when promise message is received from the leader
-        int  PromiseEnd(); // after the Promise() message is sent by the client
+// Destructor will just close the file handle to the log file.
+PaxosNodeLogger::~PaxosNodeLogger(void)
+{
+    if(myfile.is_open())
+        myfile.close();
+}
 
-        int AcceptReqStart();
-        int AcceptReqEnd();
+// Sets the name of the file to be "guid.csv"
+void PaxosNodeLogger::SetLogFileName(string nodeguid)
+{
+    logfilename = nodeguid + ".csv";
+}
 
-        int BroadCastStart(); // By leader only to send message to all that a final consensus has been reached.
-        int BroadCastEnd();
+// adds header to the logfile of current logger instance.
+int PaxosNodeLogger::AddLogFileHeader(void)
+{
+    if (!myfile.is_open()) // should always be true
+    {
+        // Now add header to the file
+        myfile << "uniqueId" << ",";
+        //myfile << "currentState" << ","; // ???
+        myfile << "N" << ",";
+        myfile << "value" << ",";
+        myfile << "nodeRole" << ",";
+        myfile << "maxPromisedN" << ",";
+        myfile << "maxAcceptedN" << ",";
+        myfile << "consensusValue" << ",";
+        myfile << "nodeAlive" << ",";
+        myfile << "currentAction" << ",";
+        return 1;
+    }
+    return 0; // file not open, return that failed to add header to the log file.
+}
 
-        int NodeCrashStart(); // to simulate that the node is crashing. Might not need separate start and end, but still useful.
-        int NodeCrashEnd();
+int PaxosNodeLogger::OpenLogFile(string logfilename)
+{
+    if (!myfile.is_open())
+    {
+        myfile.open(logfilename);
+    }
+    return 1;
+}
+
+// Adds one row of data to log file, assume that log file is already open
+int PaxosNodeLogger::AddRowToLogFile(int nodeAlive, int N, string value, int nodeRole, int maxPromisedN, string consensusValue, int currentAction)
+{
+    time_t timeStamp = time(0); // will this work on linux
+    myfile << "\n"; // get to the new line for next entry.
+    myfile << nodeuniqueid      << ",";         // string: unique guid for the node which owns this log file, same as file name.
+    myfile << nodeAlive         << ",";         // int: denotes if the node is alive is crashed state.
+    myfile << N                 << ",";         // int: The value of N proposed or accepted by a node. In say Broadcast action, its value is redundant.
+    myfile << value             << ",";         // string: Pick value v of highest proposal number -> this is the v we are talking about
+    myfile << nodeRole          << ",";         // int: Proposer, Acceptor, Learner.
+    myfile << maxPromisedN      << ",";         // int: Maximum Promised value of N so far for the node. Even leader can have a promised N
+    myfile << consensusValue    << ",";         // string: Final agreed upon consensus value
+    myfile << currentAction     << ",";         // int Current action on the node as the logging is happening 
+                                                // proposeStart, proposeEnd,
+                                                // promiseStart, promiseEnd,
+                                                // acceptReqStart, acceptReqEnd,
+                                                // broadcastStart, broadcastEnd,
+                                                // nodecrashStart, nodecrashEnd
+
+    return 1;
 }
