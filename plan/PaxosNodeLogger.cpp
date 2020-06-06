@@ -1,7 +1,9 @@
 #include <ctime>
 #include <fstream>
 #include<string>
-
+#include <sstream>
+#include <random>
+#include <string>
 using namespace  std;
 
 /*
@@ -25,14 +27,13 @@ class PaxosNodeLogger{
         string GetLogFileName();
         int OpenLogFile(string logfilename);          // private to be used by init function to get a handle to the log file
         int AddLogFileHeader();
-        int CloseLogFile();      // also called by destructor
 
     public:
         // functions
         PaxosNodeLogger(string nodeguid); // Init function to get a handle to the log file. Do we need to extract previous paxos run count?
         ~PaxosNodeLogger(); // destructor to closet the file handle
-
         int AddRowToLogFile(int nodeAlive, int N, string value, int nodeRole, int maxPromisedN, string consensusValue, int currentAction);
+        void CloseLogFile();
 };
 
 // Constructor will open/create a log file with the guid as ts name, add header to the csv file and keep it open
@@ -86,6 +87,13 @@ int PaxosNodeLogger::OpenLogFile(string logfilename)
     }
     return 1;
 }
+void PaxosNodeLogger::CloseLogFile()
+{
+    if (myfile.is_open())
+    {
+        myfile.close();
+    }
+}
 
 // Adds one row of data to log file, assume that log file is already open
 int PaxosNodeLogger::AddRowToLogFile(int nodeAlive, int N, string value, int nodeRole, int maxPromisedN, string consensusValue, int currentAction)
@@ -106,5 +114,40 @@ int PaxosNodeLogger::AddRowToLogFile(int nodeAlive, int N, string value, int nod
                                                 // broadcastStart, broadcastEnd,
                                                 // nodecrashStart, nodecrashEnd
 
+    return 1;
+}
+
+unsigned int  random_char()
+{
+    random_device rd;
+    mt19937 gen(rd());
+    uniform_int_distribution<> dis(0, 255);
+    return dis(gen);
+}
+
+string generate_hex(const unsigned int len)
+{
+    stringstream ss;
+    for (auto i = 0; i < len; i++) {
+        const auto rc = random_char();
+        stringstream hexstream;
+        hexstream << hex << rc;
+        auto hex = hexstream.str();
+        ss << (hex.length() < 2 ? '0' + hex : hex);
+    }
+    return ss.str();
+}
+
+// create an instance of node logger and add two rows of logs to it
+// Not a member of PaxosNodeLogger class, so we have to instantiate the object
+int TestPaxosNodeLogger()
+{
+    string guid = generate_hex(16);
+    PaxosNodeLogger *plogger = new PaxosNodeLogger(guid);
+    //proposestart
+    plogger->AddRowToLogFile(1, 1, NULL, 1, -1, NULL, 1);
+    // propose end
+    plogger->AddRowToLogFile(1, 1, NULL, 1, -1, NULL, 2);
+    plogger->CloseLogFile();
     return 1;
 }
