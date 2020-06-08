@@ -42,6 +42,7 @@ private:
 	std::vector<std::mutex> mutexes;
 	std::mutex cout_mutex;
 	int nodes;
+	bool dump_messages;
 	PaxosNodeLogger *log;
 
 	/* Performs Packet Switching. */
@@ -79,7 +80,9 @@ private:
 
 				m->receiver = receiver;
 				cout_mutex.lock ();
-				dump_message (m);
+				if (dump_messages){
+					dump_message (m);
+				}
 				cout_mutex.unlock ();
 				free (m);
 
@@ -96,6 +99,7 @@ public:
 		threads = std::vector<std::thread> (n);
 		mutexes = std::vector<std::mutex> (n);
 		log = new PaxosNodeLogger (CONTROLLER_LOG);
+		dump_messages = false;
 
 
 
