@@ -1,18 +1,7 @@
 #ifndef PAXOS_MESSAGE_H
 #define PAXOS_MESSAGE_H
 #include <memory.h>
-#define PROPOSER 1
-#define LEARNER  1 << 1
-#define ACCEPTOR 1 << 2
-#define ACK_ACC 1
-#define ACK_REJ 0
-#define NO_VALUE -1
-#define PREPARING -4
-#define CONSENSUS -2
-#define KILL_PROCESS -3
-#define CONTROLLER_LOG -1
-#define ALIVE 1
-#define CRASHED 0
+#include "paxos_constants.h"
 
 enum MSG_TYPE {MSG_INIT, MSG_PREPARE, MSG_PREPARE_ACK, 
 			   MSG_PROPOSE, MSG_PROPOSE_ACK, MSG_UPDATE,
@@ -32,10 +21,7 @@ struct message {
 		round = rnd;
 		type = ty;
 	}
-
-
 };
-
 
 struct vote {
 	int node;

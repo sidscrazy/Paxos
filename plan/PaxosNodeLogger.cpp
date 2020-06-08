@@ -59,6 +59,8 @@ void PaxosNodeLogger::CloseLogFile()
     }
 }
 
+
+
 // Adds one row of data to log file, assume that log file is already open
 int PaxosNodeLogger::AddRowToLogFile(int nodeAlive, int N, string value, int nodeRole, int maxPromisedN, string consensusValue, int currentAction)
 {
@@ -80,4 +82,12 @@ int PaxosNodeLogger::AddRowToLogFile(int nodeAlive, int N, string value, int nod
                                                 // nodecrashStart, nodecrashEnd
 
     return 1;
+}
+
+void PaxosNodeLogger::Crash (){
+    AddRowToLogFile (CRASHED, -1, "", -1, -1, "", -1);
+}
+
+void PaxosNodeLogger::ResumeFromCrash (){
+    AddRowToLogFile (RESUME, -1, "", -1, -1, "", -1);
 }

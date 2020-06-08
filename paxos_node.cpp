@@ -1,4 +1,5 @@
 #include <stdio.h> 
+#include <stdlib.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <unistd.h> 
@@ -23,8 +24,22 @@ private:
 	std::mutex network_lock;
 	std::mutex queue_lock;
 	std::queue<message *> messages;
+
+	/* Proposer and Learner Relevant Data. 
+	   Proposers need to track how many accepting
+	   acks they have received for prepare messages.
+	   Learners need to track how many votes for 
+	   value v there are in round n. */
 	std::vector<vote *> votes;
 	std::vector<int> prepare_acks;
+
+	/* Crash Management Members. By default, 
+	   there is a 5% to crash upon any event 
+	   that can trigger a crash. Crashing is 
+	   split evenly among network and machine
+	   failures, but handled distinctly. */
+	int p_crash = 5;
+	int crash_dist = 50;
 
 
 	void network_listener (){
@@ -38,6 +53,23 @@ private:
 				messages.push (m);
 				queue_lock.unlock ();
 			}
+		}
+	}
+
+	void potential_crash (){
+		int c = rand () % 100;
+		if (c < p_crash){
+
+			log->Crash ();
+			int crash_type = rand () % 100;
+			/* Network Failure. */
+			if (crash_type < crash_dist) {
+
+			} /* Machine Failure. */
+			else {
+
+			}
+			log->ResumeFromCrash ();
 		}
 	}
 
