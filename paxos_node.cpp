@@ -8,6 +8,7 @@
 #include <thread>
 #include <mutex>
 #include "paxos_message.h"
+#include "./plan/PaxosNodeLogger.h"
 #include <queue>
 #include <memory.h>
 
@@ -18,6 +19,7 @@ private:
 	int role;
 	int v;
 	int n;
+	PaxosNodeLogger *log;
 	std::mutex network_lock;
 	std::mutex queue_lock;
 	std::queue<message *> messages;
@@ -253,6 +255,7 @@ public:
 		num_nodes = m->value;
 		n = 0;
 		v = NO_VALUE;
+		log = new PaxosNodeLogger (id);
 	}
 
 	void run (){

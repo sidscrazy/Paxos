@@ -8,6 +8,7 @@
 #include <thread>
 #include <mutex>
 #include "paxos_message.h"
+#include "./plan/PaxosNodeLogger.h"
 #include <queue>
 #include <memory.h>
 
@@ -41,7 +42,7 @@ private:
 	std::vector<std::mutex> mutexes;
 	std::mutex cout_mutex;
 	int nodes;
-
+	PaxosNodeLogger *log;
 
 	/* Performs Packet Switching. */
 	void network_simulator (int id){
@@ -94,6 +95,9 @@ public:
 		sockets = std::vector<int> (n);
 		threads = std::vector<std::thread> (n);
 		mutexes = std::vector<std::mutex> (n);
+		log = new PaxosNodeLogger (CONTROLLER_LOG);
+
+
 
 		for (int i = 0; i < nodes; i++){
 			
