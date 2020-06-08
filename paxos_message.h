@@ -10,6 +10,9 @@
 #define PREPARING -4
 #define CONSENSUS -2
 #define KILL_PROCESS -3
+#define CONTROLLER_LOG -1
+#define ALIVE 1
+#define CRASHED 0
 
 enum MSG_TYPE {MSG_INIT, MSG_PREPARE, MSG_PREPARE_ACK, 
 			   MSG_PROPOSE, MSG_PROPOSE_ACK, MSG_UPDATE,
@@ -32,15 +35,7 @@ struct message {
 
 
 };
-void dump_message (message *m) {
-	std::cout << "Paxos Message Start" << std::endl;
-	std::cout << "Sender: " << m->sender << std::endl;
-	std::cout << "Receier: " << m->receiver << std::endl;
-	std::cout << "Value: " << m->value << std::endl;
-	std::cout << "Round: " << m->round << std::endl;
-	std::cout << "Type: " << m->type << std::endl;
-	std::cout << "Paxos Message End" << std::endl;
-}
+
 
 struct vote {
 	int node;
@@ -54,21 +49,6 @@ struct vote {
 	}
 };
 
-
-void ping (int fd){
-	message *m = (message *) malloc (sizeof (message));
-	if (m == NULL){
-		return;
-	}
-	m->sender = -1;
-	m->receiver = -1;
-	m->value = NO_VALUE;
-	m->round = -1;
-	m->type = MSG_PING;
-	write (fd, (char *)m, sizeof (message));
-	free (m);
-
-}
 
 message *receive_packet (int fd){
 	message *m = (message *) malloc (sizeof (message));
@@ -91,6 +71,37 @@ message *receive_packet (int fd){
 
 void send_packet (int fd, message *m){
 	write (fd, (char *)m, sizeof (message));
+}
+
+
+
+/* For debugging - insert this function to
+   test connectivity. */
+void ping (int fd){
+	message *m = (message *) malloc (sizeof (message));
+	if (m == NULL){
+		return;
+	}
+	m->sender = -1;
+	m->receiver = -1;
+	m->value = NO_VALUE;
+	m->round = -1;
+	m->type = MSG_PING;
+	write (fd, (char *)m, sizeof (message));
+	free (m);
+
+}
+
+/* For Debugging - used to print messages
+   from the Paxos Controller switch component. */
+void dump_message (message *m) {
+	std::cout << "Paxos Message Start" << std::endl;
+	std::cout << "Sender: " << m->sender << std::endl;
+	std::cout << "Receier: " << m->receiver << std::endl;
+	std::cout << "Value: " << m->value << std::endl;
+	std::cout << "Round: " << m->round << std::endl;
+	std::cout << "Type: " << m->type << std::endl;
+	std::cout << "Paxos Message End" << std::endl;
 }
 
 #endif /* PAXOS_MESSAGE_H */

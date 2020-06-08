@@ -8,6 +8,7 @@
 #include <thread>
 #include <mutex>
 #include "paxos_message.h"
+#include "./plan/PaxosNodeLogger.h"
 #include <queue>
 #include <memory.h>
 
@@ -18,6 +19,7 @@ private:
 	int role;
 	int v;
 	int n;
+	PaxosNodeLogger *log;
 	std::mutex network_lock;
 	std::mutex queue_lock;
 	std::queue<message *> messages;
@@ -39,6 +41,16 @@ private:
 		}
 	}
 
+
+	/* Thin wrapper around send packet, 
+	   makes logging convenient. Log whenever
+	   a packet is sent. */
+	void send_message (int fd, message *m){
+		log->AddRowToLogFile (ALIVE, n, to_string (v),
+							  role, n, to_string (v), m->type);
+		send_packet (fd, m);
+	}
+
 	void check_consensus () {
 		if ((role & LEARNER)&& (role & PROPOSER)) {
 			int valid_votes = 0;
@@ -50,12 +62,12 @@ private:
 			if (valid_votes > num_nodes / 2) {
 				message cons (id, -1, v, n, MSG_CONSENSUS);
 				network_lock.lock ();
-				send_packet (0, &cons);
+				send_message (0, &cons);
 				network_lock.unlock ();
 
 				cons.type = MSG_TEARDOWN;
 				network_lock.lock ();
-				send_packet (0, &cons);
+				send_message (0, &cons);
 				network_lock.unlock ();
 
 				exit (0);
@@ -86,7 +98,7 @@ private:
 
 			clear_responses ();
 			network_lock.lock ();
-			send_packet (0, &m);
+			send_message (0, &m);
 			network_lock.unlock ();
 			prepare_acks.push_back (id);
 
@@ -104,7 +116,7 @@ private:
 		v = 5;
 		message m (id, -1, v, n, MSG_PROPOSE);
 		network_lock.lock ();
-		send_packet (0, &m);
+		send_message (0, &m);
 		network_lock.unlock ();
 
 		/* TODO - LOG PROPOSE */
@@ -144,7 +156,7 @@ private:
 				message response (id, m->sender, reponse_code, n, MSG_PREPARE_ACK);
 				
 				network_lock.lock ();
-				send_packet (0, &response);
+				send_message (0, &response);
 				network_lock.unlock ();
 				/* TODO - LOG PREPARE ACK */
 				break; 
@@ -171,7 +183,7 @@ private:
 					} else {
 						message response (id, m->sender, NO_VALUE, n, MSG_UPDATE);
 						network_lock.lock ();
-						send_packet (0, &response);
+						send_message (0, &response);
 						network_lock.unlock ();
 						/* TODO - LOG UPDATE MESSAGE */
 					} 
@@ -189,7 +201,7 @@ private:
 				}
 				message response (id, m->sender, response_code, n, MSG_PROPOSE_ACK);
 				network_lock.lock ();
-				send_packet (0, &response);
+				send_message (0, &response);
 				network_lock.unlock ();
 				break;
 			}
@@ -202,7 +214,7 @@ private:
 				} else if (m->round < n){
 					message response (id, m->sender, NO_VALUE, n, MSG_UPDATE);
 					network_lock.lock ();
-					send_packet (0, &response);
+					send_message (0, &response);
 					network_lock.unlock ();
 
 				} else {
@@ -230,7 +242,7 @@ private:
 			case MSG_CONSENSUS: {
 				network_lock.lock ();
 				m->type = MSG_TEARDOWN;
-				send_packet (0, m);
+				send_message (0, m);
 				network_lock.unlock ();
 				exit (0);
 				break;
@@ -253,6 +265,7 @@ public:
 		num_nodes = m->value;
 		n = 0;
 		v = NO_VALUE;
+		log = new PaxosNodeLogger (id);
 	}
 
 	void run (){
