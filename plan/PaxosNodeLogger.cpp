@@ -62,8 +62,9 @@ void PaxosNodeLogger::CloseLogFile()
 // Adds one row of data to log file, assume that log file is already open
 int PaxosNodeLogger::AddRowToLogFile(int nodeAlive, int N, string value, int nodeRole, int maxPromisedN, string consensusValue, int currentAction)
 {
-    time_t timeStamp = time(0); // will this work on linux
+    time_t timeStamp = time(0); // will this work on linux?
     myfile << "\n"; // get to the new line for next entry.
+    myfile << timeStamp         << ",";         // get to the new line for next entry.
     myfile << nodeuniqueid      << ",";         // string: unique guid for the node which owns this log file, same as file name.
     myfile << nodeAlive         << ",";         // int: denotes if the node is alive is crashed state.
     myfile << N                 << ",";         // int: The value of N proposed or accepted by a node. In say Broadcast action, its value is redundant.
