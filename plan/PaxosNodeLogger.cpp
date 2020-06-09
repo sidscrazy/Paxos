@@ -30,6 +30,7 @@ int PaxosNodeLogger::AddLogFileHeader(void)
         // Now add header to the file
         myfile << "timeStamp" << ",";
         myfile << "nodeid" << ",";
+        myfile << "receiverid" << ",";
         myfile << "nodeAlive" << ",";
         myfile << "N" << ",";
         myfile << "value" << ",";
@@ -77,6 +78,7 @@ int PaxosNodeLogger::AddRowToLogFile(int nodeAlive, int N, string value, int nod
     myfile << "\n"; // get to the new line for next entry.
     myfile << ts        << ",";         // get to the new line for next entry.
     myfile << nodeuniqueid      << ",";         // string: unique guid for the node which owns this log file, same as file name.
+    myfile << "NA" << ",";
     myfile << nodeAlive         << ",";         // int: denotes if the node is alive is crashed state.
     myfile << N                 << ",";         // int: The value of N proposed or accepted by a node. In say Broadcast action, its value is redundant.
     myfile << value             << ",";         // string: Pick value v of highest proposal number -> this is the v we are talking about
@@ -97,6 +99,7 @@ void PaxosNodeLogger::AddMsg (message *m, int role) {
     myfile << "\n"; // get to the new line for next entry.
     myfile << m->timestamp        << ",";         // get to the new line for next entry.
     myfile << m->sender     << ",";         // string: unique guid for the node which owns this log file, same as file name.
+    myfile << m->receiver     << ",";         
     myfile << MSG_ENTRY         << ",";         // int: denotes if the node is alive is crashed state.
     myfile << m->round                 << ",";         // int: The value of N proposed or accepted by a node. In say Broadcast action, its value is redundant.
     myfile << m->value             << ",";         // string: Pick value v of highest proposal number -> this is the v we are talking about
@@ -114,6 +117,7 @@ void PaxosNodeLogger::CrashSequence (message *m){
     myfile << "\n"; // get to the new line for next entry.
     myfile << m->timestamp        << ",";         // get to the new line for next entry.
     myfile << m->sender     << ",";         // string: unique guid for the node which owns this log file, same as file name.
+    myfile << "-1" << ",";
     myfile << m->value         << ",";         // int: denotes if the node is alive is crashed state.
     myfile << "-1"                  << ",";         // int: The value of N proposed or accepted by a node. In say Broadcast action, its value is redundant.
     myfile << "-1"            << ",";         // string: Pick value v of highest proposal number -> this is the v we are talking about

@@ -8,7 +8,7 @@
 #include <ctime>
 #include <chrono>
 
-#define ATTEMPTS 15
+#define ATTEMPTS 1
 
 std::chrono::duration<double> run_paxos (int n, int p){
 	std::chrono::duration<double> total;
