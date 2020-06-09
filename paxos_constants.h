@@ -18,14 +18,14 @@
 /* Uniquely Idenfity the Controller
    in log files. */
 #define CONTROLLER_LOG -1
-#define CHECKPOINT_INTERVAL 10
+
 
 /* Identifiers for Log Entry Types. */
 #define INIT_ENTRY 0
 #define MSG_ENTRY 1
 #define CRASH_ENTRY 2
 #define RESUME_ENTRY 3
-#define CHECKPOINT_ENTRY 4
+
 
 /* Crash Constants. */
 #define TIMEOUT 2

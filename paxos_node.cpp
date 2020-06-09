@@ -43,10 +43,8 @@ private:
 	int crash_dist = C_DIST;
 
 
-	/* Handle timeout events and 
-	   log checkpointing. */
+	/* Handle timeout events. */
 	time_t timeout;
-	time_t last_checkpoint;
 
 
 
@@ -150,7 +148,7 @@ private:
 				network_lock.lock ();
 				send_message (0, &cons);
 				network_lock.unlock ();
-
+				log->CloseLogFile ();
 				exit (0);
 			}
 		}
@@ -168,11 +166,8 @@ private:
 		}
 		prepare_acks.clear ();
 		v = NO_VALUE;
-		time_t cur = time (0);
-		if (cur - last_checkpoint > CHECKPOINT_INTERVAL) {
-			log->Checkpoint ();
-			last_checkpoint = cur;
-		}
+
+
 	}
 
 
@@ -334,6 +329,7 @@ private:
 				m->type = MSG_TEARDOWN;
 				send_message (0, m);
 				network_lock.unlock ();
+				log->CloseLogFile ();
 				exit (0);
 				break;
 			}
@@ -357,7 +353,6 @@ public:
 		n = 0;
 		v = NO_VALUE;
 		log = new PaxosNodeLogger (id);
-		last_checkpoint = time (0);
 	}
 
 	void run (){

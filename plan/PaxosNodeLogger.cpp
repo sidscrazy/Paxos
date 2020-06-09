@@ -84,13 +84,7 @@ int PaxosNodeLogger::AddRowToLogFile(int nodeAlive, int N, string value, int nod
     return 1;
 }
 
-void PaxosNodeLogger::AddMessage (message *m) {
 
-}
-
-void PaxosNodeLogger::AddStartup (int id, int role, int nodes) {
-
-}
 
 void PaxosNodeLogger::Crash (){
     AddRowToLogFile (CRASH_ENTRY, -1, "", -1, -1, "", -1);
@@ -98,8 +92,4 @@ void PaxosNodeLogger::Crash (){
 
 void PaxosNodeLogger::ResumeFromCrash (){
     AddRowToLogFile (RESUME_ENTRY, -1, "", -1, -1, "", -1);
-}
-
-void PaxosNodeLogger::Checkpoint () {
-
 }
