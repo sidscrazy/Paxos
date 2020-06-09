@@ -28,6 +28,7 @@ int PaxosNodeLogger::AddLogFileHeader(void)
     if (myfile.is_open()) // should always be true
     {
         // Now add header to the file
+        myfile << "timeStamp" << ",";
         myfile << "nodeid" << ",";
         //myfile << "currentState" << ","; // ???
         myfile << "N" << ",";
