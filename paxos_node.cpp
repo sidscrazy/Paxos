@@ -21,7 +21,6 @@ private:
 	int role;
 	int v;
 	int n;
-	time_t timeout;
 	PaxosNodeLogger *log;
 	std::mutex network_lock;
 	std::mutex queue_lock;
@@ -42,6 +41,14 @@ private:
 	   failures, but handled distinctly. */
 	int p_crash = P_CRASH;
 	int crash_dist = C_DIST;
+
+
+	/* Handle timeout events and 
+	   log checkpointing. */
+	time_t timeout;
+	time_t last_checkpoint;
+
+
 
 
 	void network_listener (){
@@ -120,7 +127,7 @@ private:
 	   makes logging convenient. Log whenever
 	   a packet is sent. */
 	void send_message (int fd, message *m){
-		log->AddRowToLogFile (ALIVE, n, to_string (v),
+		log->AddRowToLogFile (0, n, to_string (v),
 							  role, n, to_string (v), m->type);
 		send_packet (fd, m);
 	}
@@ -161,6 +168,11 @@ private:
 		}
 		prepare_acks.clear ();
 		v = NO_VALUE;
+		time_t cur = time (0);
+		if (cur - last_checkpoint > CHECKPOINT_INTERVAL) {
+			log->Checkpoint ();
+			last_checkpoint = cur;
+		}
 	}
 
 
@@ -345,6 +357,7 @@ public:
 		n = 0;
 		v = NO_VALUE;
 		log = new PaxosNodeLogger (id);
+		last_checkpoint = time (0);
 	}
 
 	void run (){

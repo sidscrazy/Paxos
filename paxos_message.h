@@ -3,39 +3,6 @@
 #include <memory.h>
 #include "paxos_constants.h"
 
-enum MSG_TYPE {MSG_INIT, MSG_PREPARE, MSG_PREPARE_ACK, 
-			   MSG_PROPOSE, MSG_PROPOSE_ACK, MSG_UPDATE,
-			   MSG_CONSENSUS, MSG_PING, MSG_TEARDOWN};
-
-struct message {
-	int sender;
-	int receiver;
-	int value;
-	int round;
-	MSG_TYPE type;
-
-	message (int s, int recv, int v, int rnd, MSG_TYPE ty){
-		sender = s;
-		receiver = recv;
-		value = v;
-		round = rnd;
-		type = ty;
-	}
-};
-
-struct vote {
-	int node;
-	int n;
-	int v;
-
-	vote (int sender, int num, int val){
-		node = sender;
-		num = n;
-		val = v;
-	}
-};
-
-
 message *receive_packet (int fd){
 	message *m = (message *) malloc (sizeof (message));
 	if (m == NULL){
@@ -59,7 +26,6 @@ message *receive_packet (int fd){
 void send_packet (int fd, message *m){
 	write (fd, (char *)m, sizeof (message));
 }
-
 
 
 /* For debugging - insert this function to
