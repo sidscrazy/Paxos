@@ -1,6 +1,11 @@
 #ifndef PAXOS_CONSTANTS_H
 #define PAXOS_CONSTANTS_H
+
+
+
 /* Role Constants. */
+#define NODES 5
+#define PROPOSERS 1
 #define PROPOSER 1
 #define LEARNER  1 << 1
 #define ACCEPTOR 1 << 2
@@ -31,8 +36,8 @@
 
 /* Crash Constants. */
 #define TIMEOUT 2
-#define P_CRASH 25
-#define C_DIST 15
+#define P_CRASH 5
+#define C_DIST 2
 
 enum MSG_TYPE {MSG_INIT, MSG_PREPARE, MSG_PREPARE_ACK, 
 			   MSG_PROPOSE, MSG_PROPOSE_ACK, MSG_UPDATE,

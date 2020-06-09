@@ -50,6 +50,21 @@ private:
 
 
 
+	void safe_exit (message *m) {
+		log->CloseLogFile ();
+		m->type = MSG_TEARDOWN;
+		network_lock.lock ();
+		send_message (0, m);
+		while (true){
+			m = receive_packet (1);
+			if (m != NULL){
+				if (m->type == MSG_TEARDOWN){
+					network_lock.unlock ();
+					exit (0);
+				}
+			}
+		}
+	}
 
 	void network_listener (){
 		message *m;
@@ -145,13 +160,7 @@ private:
 				network_lock.lock ();
 				send_message (0, &cons);
 				network_lock.unlock ();
-
-				cons.type = MSG_TEARDOWN;
-				network_lock.lock ();
-				send_message (0, &cons);
-				network_lock.unlock ();
-				log->CloseLogFile ();
-				exit (0);
+				safe_exit (&cons);
 			}
 		}
 	}
@@ -200,6 +209,11 @@ private:
 		if (v == NO_VALUE){
 			v = rand () % 250;
 		}
+		vote *vo = (vote *) malloc (sizeof (vote));
+		vo->node = id;
+		vo->n = n;
+		vo->v = v;
+		votes.push_back (vo);
 
 		message m (id, -1, v, n, MSG_PROPOSE);
 		network_lock.lock ();
@@ -207,9 +221,6 @@ private:
 		network_lock.unlock ();
 		timeout  = time(0);
 		simulate_crash ();
-
-
-
 	}
 
 	void proposer_state_update () {
@@ -274,13 +285,12 @@ private:
 			}
 
 			case MSG_PROPOSE: {
-				int res_val = NO_VALUE;
 				if (m->round == n && state == PREPARING &&
 					m->value >= v){
 					v = m->value;
-					res_val = v;
+					state = PROPOSING;
 				} 
-				message response (id, m->sender, res_val, n, MSG_PROPOSE_ACK);
+				message response (id, m->sender, v, n, MSG_PROPOSE_ACK);
 				network_lock.lock ();
 				send_message (0, &response);
 				network_lock.unlock ();
@@ -318,12 +328,7 @@ private:
 			}
 
 			case MSG_CONSENSUS: {
-				network_lock.lock ();
-				m->type = MSG_TEARDOWN;
-				send_message (0, m);
-				network_lock.unlock ();
-				log->CloseLogFile ();
-				exit (0);
+				safe_exit (m);
 				break;
 			}
 

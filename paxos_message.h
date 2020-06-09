@@ -30,7 +30,7 @@ void send_packet (int fd, message *m){
 
 /* For debugging - insert this function to
    test connectivity. */
-void ping (int fd){
+void ping (int fd, MSG_TYPE ty){
 	message *m = (message *) malloc (sizeof (message));
 	if (m == NULL){
 		return;
@@ -38,7 +38,7 @@ void ping (int fd){
 	m->receiver = -1;
 	m->value = NO_VALUE;
 	m->round = -1;
-	m->type = MSG_PING;
+	m->type = ty;
 	write (fd, (char *)m, sizeof (message));
 	free (m);
 

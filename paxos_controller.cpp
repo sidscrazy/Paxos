@@ -12,7 +12,7 @@
 #include <queue>
 #include <memory.h>
 
-#define NODES 5
+
 
 /* The PaxosController class handles initialization
    of PaxosNodes and also simulates packet switching
@@ -56,7 +56,12 @@ private:
 			if (m != NULL){
 				int receiver = m->receiver;
 				
+				/* Special Sequence for Ending Connection
+				   and exiting program safely. */
 				if (m->type == MSG_TEARDOWN) {
+					mutexes[id].lock ();
+					send_packet (sockets[id], m);
+					mutexes[id].unlock ();
 					free (m);
 					return;
 				}
@@ -136,7 +141,7 @@ public:
 			}
 
 			int role = ACCEPTOR;
-			if (i == 0){
+			if (i <= PROPOSERS){
 				role |= PROPOSER;
 				role |= LEARNER;
 			}
