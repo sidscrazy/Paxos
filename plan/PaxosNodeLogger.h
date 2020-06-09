@@ -36,5 +36,6 @@ public:
     void AddStartup (int id, int role, int nodes);
     void Crash ();
     void ResumeFromCrash ();
+    void FlushToDisk();
     void CloseLogFile();
 };

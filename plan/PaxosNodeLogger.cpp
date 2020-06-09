@@ -51,6 +51,15 @@ int PaxosNodeLogger::OpenLogFile(string logfilename)
     }
     return 1;
 }
+
+void PaxosNodeLogger::FlushToDisk()
+{
+    if (myfile.is_open())
+    {
+        myfile.flush();
+    }
+}
+
 void PaxosNodeLogger::CloseLogFile()
 {
     if (myfile.is_open())
