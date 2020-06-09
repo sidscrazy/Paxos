@@ -72,7 +72,9 @@ void PaxosNodeLogger::CloseLogFile()
 // Adds one row of data to log file, assume that log file is already open
 int PaxosNodeLogger::AddRowToLogFile(int nodeAlive, int N, string value, int nodeRole, int maxPromisedN, string consensusValue, int currentAction)
 {
-    time_t timeStamp = time(0); // will this work on linux?
+//    time_t timeStamp = time(0); // will this work on linux?
+    auto now = std::chrono::system_clock::now();
+    int64_t timeStamp = std::chrono::duration_cast<std::chrono::nanoseconds>(now.time_since_epoch()).count(); // gets us nanoseconds since epoch
     myfile << "\n"; // get to the new line for next entry.
     myfile << timeStamp         << ",";         // get to the new line for next entry.
     myfile << nodeuniqueid      << ",";         // string: unique guid for the node which owns this log file, same as file name.

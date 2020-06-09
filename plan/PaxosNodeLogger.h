@@ -2,6 +2,8 @@
 #include <ctime>
 #include <fstream>
 #include<string>
+#include<chrono>
+
 #include "../paxos_constants.h"
 using namespace  std;
 
