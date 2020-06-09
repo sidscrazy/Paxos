@@ -126,7 +126,7 @@ private:
 	   makes logging convenient. Log whenever
 	   a packet is sent. */
 	void send_message (int fd, message *m){
-		log->AddRowToLogFile (0, n, to_string (v),
+		log->AddRowToLogFile (MSG_ENTRY, n, to_string (v),
 							  role, n, to_string (v), m->type);
 		send_packet (fd, m);
 	}
