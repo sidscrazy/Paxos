@@ -12,6 +12,7 @@
 #include "./plan/PaxosNodeLogger.h"
 #include <queue>
 #include <memory.h>
+#include <ctime>
 
 class PaxosNode {
 private:
@@ -20,6 +21,7 @@ private:
 	int role;
 	int v;
 	int n;
+	time_t timeout;
 	PaxosNodeLogger *log;
 	std::mutex network_lock;
 	std::mutex queue_lock;
@@ -38,8 +40,8 @@ private:
 	   that can trigger a crash. Crashing is 
 	   split evenly among network and machine
 	   failures, but handled distinctly. */
-	int p_crash = 5;
-	int crash_dist = 50;
+	int p_crash = P_CRASH;
+	int crash_dist = C_DIST;
 
 
 	void network_listener (){
@@ -56,20 +58,60 @@ private:
 		}
 	}
 
-	void potential_crash (){
-		int c = rand () % 100;
-		if (c < p_crash){
-
-			log->Crash ();
-			int crash_type = rand () % 100;
-			/* Network Failure. */
-			if (crash_type < crash_dist) {
-
-			} /* Machine Failure. */
-			else {
-
+	void clear_network () {
+		message *m;
+		while (true){
+			m = receive_packet (1);
+			if (m == NULL){
+				break;
+			} else {
+				free (m);
 			}
+		}
+
+	}
+
+	/* Randomly simulate a crash. */
+	void simulate_crash (){
+		int c = rand () % 100;
+		int crash_type = rand () % 100;
+		if (c < p_crash){
+			/* Don't sleep while holding locks. It's fine
+			   to just modify system state accordingly when
+			   waking up. */
+			int crash_duration = (rand () % (TIMEOUT * 3) ) + 1;
+			sleep (crash_duration);
+
+			network_lock.lock ();
+			log->Crash ();
+			/* Machine Failure. Clear all current
+			   state and then recover from log. */
+			if (crash_type < crash_dist) {
+				clear_responses ();
+				queue_lock.lock ();
+			    while (!messages.empty ()) {
+					message *m = messages.front ();
+					messages.pop ();
+					free (m);
+				}
+				queue_lock.unlock ();
+			}
+
+
+			clear_network ();
+
 			log->ResumeFromCrash ();
+			network_lock.unlock ();
+		}
+	}
+
+	void check_timeout (){
+		if (role & PROPOSER){
+			time_t timeStamp = time(0);
+			if (timeStamp - timeout  > TIMEOUT) {
+				clear_responses ();
+				proposer_state_update ();
+			}
 		}
 	}
 
@@ -160,9 +202,14 @@ private:
 			if (prepare_acks.size () == 0 && v == NO_VALUE){
 				prepare ();
 				v = PREPARING;
+				simulate_crash ();
+				timeout = time(0);
 			} else if (votes.size () == 0 && v == PREPARING) {
 				propose ();
+				simulate_crash ();
+				timeout  = time(0);
 			}
+
 		}
 	}
 
@@ -173,7 +220,6 @@ private:
 
 		int reponse_code; 
 		switch (m->type){
-
 			case MSG_PREPARE: {
 				if (m->round > n) {
 					n = m->round;
@@ -285,6 +331,7 @@ private:
 		}
 
 		free (m);
+		simulate_crash ();
 	}
 
 public:
@@ -315,7 +362,7 @@ public:
 			process_message (m);
 			proposer_state_update ();
 			check_consensus ();
-			
+			check_timeout ();	
 		}
 
 	}

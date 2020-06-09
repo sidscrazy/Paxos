@@ -21,3 +21,6 @@
 #define ALIVE 1
 #define CRASHED -1
 #define RESUME 0
+#define TIMEOUT 2
+#define P_CRASH 3
+#define C_DIST 15

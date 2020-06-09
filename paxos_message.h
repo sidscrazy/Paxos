@@ -46,6 +46,7 @@ message *receive_packet (int fd){
 	size_t len = sizeof (message);
 	size_t r = recv (fd, buf, len, MSG_DONTWAIT);
 	if (r != len){
+		free (m);
 		return NULL;
 	}
 
@@ -68,7 +69,6 @@ void ping (int fd){
 	if (m == NULL){
 		return;
 	}
-	m->sender = -1;
 	m->receiver = -1;
 	m->value = NO_VALUE;
 	m->round = -1;
