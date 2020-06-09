@@ -13,6 +13,7 @@
 #include <queue>
 #include <memory.h>
 #include <ctime>
+#include <chrono>
 
 class PaxosNode {
 private:
@@ -93,6 +94,13 @@ private:
 
 	}
 
+	void notify_crash (int code) {
+		message m (id, -1, code, n, MSG_CRASH);
+		auto now = std::chrono::system_clock::now();
+   		m.timestamp = std::chrono::duration_cast<std::chrono::nanoseconds>(now.time_since_epoch()).count();
+		send_packet (0, &m);
+	}
+
 	/* Randomly simulate a crash. */
 	void simulate_crash (){
 		int c = rand () % 100;
@@ -106,6 +114,7 @@ private:
 
 			network_lock.lock ();
 			log->Crash ();
+			notify_crash (CRASH_ENTRY);
 			/* Machine Failure. Clear all current
 			   state and then recover from log. */
 			if (crash_type < crash_dist) {
@@ -122,6 +131,7 @@ private:
 
 			clear_network ();
 			log->ResumeFromCrash ();
+			notify_crash (RESUME_ENTRY);
 			network_lock.unlock ();
 		}
 	}
@@ -141,8 +151,16 @@ private:
 	   makes logging convenient. Log whenever
 	   a packet is sent. */
 	void send_message (int fd, message *m){
-		log->AddRowToLogFile (MSG_ENTRY, n, to_string (v),
-							  role, n, to_string (v), m->type);
+		auto now = std::chrono::system_clock::now();
+   		m->timestamp = std::chrono::duration_cast<std::chrono::nanoseconds>(now.time_since_epoch()).count();
+		if (m->type == MSG_CONSENSUS){
+			log->AddRowToLogFile (MSG_ENTRY, n, to_string (v),
+								  role, n, to_string (v), m->type, m->timestamp);
+		} else {
+			log->AddRowToLogFile (MSG_ENTRY, n, to_string (v),
+								  role, n, "", m->type, m->timestamp);
+		}
+
 		send_packet (fd, m);
 	}
 

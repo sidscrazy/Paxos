@@ -41,7 +41,8 @@
 
 enum MSG_TYPE {MSG_INIT, MSG_PREPARE, MSG_PREPARE_ACK, 
 			   MSG_PROPOSE, MSG_PROPOSE_ACK, MSG_UPDATE,
-			   MSG_CONSENSUS, MSG_PING, MSG_TEARDOWN};
+			   MSG_CONSENSUS, MSG_PING, MSG_TEARDOWN, 
+			   MSG_CRASH};
 
 struct message {
 	int sender;
@@ -49,6 +50,7 @@ struct message {
 	int value;
 	int round;
 	MSG_TYPE type;
+	int64_t timestamp;
 
 	message (int s, int recv, int v, int rnd, MSG_TYPE ty){
 		sender = s;

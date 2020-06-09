@@ -33,8 +33,9 @@ public:
     // functions
     PaxosNodeLogger(int nodeguid); // Init function to get a handle to the log file. Do we need to extract previous paxos run count?
     ~PaxosNodeLogger(); // destructor to closet the file handle
-    int AddRowToLogFile(int nodeAlive, int N, string value, int nodeRole, int maxPromisedN, string consensusValue, int currentAction);
-    void AddMessage (message *m);
+    int AddRowToLogFile(int nodeAlive, int N, string value, int nodeRole, int maxPromisedN, string consensusValue, int currentAction, int64_t ts);
+    void AddMsg (message *m, int role);
+    void CrashSequence (message *m);
     void AddStartup (int id, int role, int nodes);
     void Crash ();
     void ResumeFromCrash ();

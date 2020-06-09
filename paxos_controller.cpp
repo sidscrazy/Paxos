@@ -11,6 +11,8 @@
 #include "./plan/PaxosNodeLogger.h"
 #include <queue>
 #include <memory.h>
+#include <ctime>
+#include <chrono>
 
 
 
@@ -41,14 +43,19 @@ private:
 	std::vector<std::thread> threads;
 	std::vector<std::mutex> mutexes;
 	std::mutex cout_mutex;
+	std::mutex log_mutex;
 	int nodes;
 	int proposers;
-	bool dump_messages = true;
+	bool dump_messages = false;
 	PaxosNodeLogger *log;
 
 	/* Performs Packet Switching. */
 	void network_simulator (int id){
-
+		int role = ACCEPTOR;
+		if (id < proposers){
+			role |= PROPOSER;
+			role |= LEARNER;
+		}
 		message *m;
 		while (true){
 			mutexes[id].lock ();
@@ -67,20 +74,36 @@ private:
 					return;
 				}
 
+				if (m->type == MSG_CRASH){
+					log_mutex.lock ();
+					log->CrashSequence (m);
+					free (m);
+					log_mutex.unlock ();
+					continue;
+				} 
+
 				/* Broadcast Packet. */
 				if (receiver == -1) {
 					for (int i = 0; i < nodes; i++){
 						if (i != id){
 							mutexes[i].lock ();
 							m->receiver = i;
+							log_mutex.lock ();
+							log->AddMsg (m, role);
+							log_mutex.unlock ();
 							send_packet (sockets[i], m);
 							mutexes[i].unlock ();
 						}
 					}
 				/* Send to single recipient. */
 				} else {
+
+				
 					mutexes[receiver].lock ();
+					log_mutex.lock ();
+					log->AddMsg (m, role);
 					send_packet (sockets[receiver], m);
+					log_mutex.unlock ();
 					mutexes[receiver].unlock ();
 				}
 
@@ -164,6 +187,7 @@ public:
 			threads[i].join ();
 			waitpid (children[i], &status, 0);
 		}
+		log->CloseLogFile ();
 		std::cout << "Simulation Complete" << std::endl;
 	}
 };
