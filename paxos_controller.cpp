@@ -42,6 +42,7 @@ private:
 	std::vector<std::mutex> mutexes;
 	std::mutex cout_mutex;
 	int nodes;
+	int proposers;
 	bool dump_messages = true;
 	PaxosNodeLogger *log;
 
@@ -97,8 +98,9 @@ private:
 
 
 public:
-	PaxosController (int n){
+	PaxosController (int n, int p){
 		nodes = n;
+		proposers = p;
 		children = std::vector<int> (n);
 		sockets = std::vector<int> (n);
 		threads = std::vector<std::thread> (n);
@@ -141,7 +143,7 @@ public:
 			}
 
 			int role = ACCEPTOR;
-			if (i <= PROPOSERS){
+			if (i <= proposers){
 				role |= PROPOSER;
 				role |= LEARNER;
 			}
@@ -155,23 +157,13 @@ public:
 
 	}
 
-
 	void end_simulation (){
 		int status;
 		char buf[1024];
-		std::cout << "Controller Exit Begin" << std::endl;
 		for (int i = 0; i < nodes ; i++){
 			threads[i].join ();
 			waitpid (children[i], &status, 0);
 		}
-		std::cout << "Controller Exit End" << std::endl;
+		std::cout << "Simulation Complete" << std::endl;
 	}
 };
-
-
-int main (){
-	PaxosController pc (NODES);
-	pc.end_simulation ();
-	return 0;
-
-}

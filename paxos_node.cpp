@@ -332,6 +332,11 @@ private:
 				break;
 			}
 
+			case MSG_TEARDOWN: {
+				safe_exit (m);
+				break;
+			}
+
 			default: 
 				break;
 		}

@@ -4,8 +4,8 @@
 
 
 /* Role Constants. */
-#define NODES 5
-#define PROPOSERS 1
+#define DEFAULT_NODES 5
+#define DEFAULT_PROPOSERS 1
 #define PROPOSER 1
 #define LEARNER  1 << 1
 #define ACCEPTOR 1 << 2
