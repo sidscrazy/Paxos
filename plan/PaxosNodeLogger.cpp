@@ -25,7 +25,7 @@ void PaxosNodeLogger::SetLogFileName(int nodeid)
 // adds header to the logfile of current logger instance.
 int PaxosNodeLogger::AddLogFileHeader(void)
 {
-    if (!myfile.is_open()) // should always be true
+    if (myfile.is_open()) // should always be true
     {
         // Now add header to the file
         myfile << "nodeid" << ",";
