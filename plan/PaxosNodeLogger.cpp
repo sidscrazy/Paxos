@@ -30,14 +30,12 @@ int PaxosNodeLogger::AddLogFileHeader(void)
         // Now add header to the file
         myfile << "timeStamp" << ",";
         myfile << "nodeid" << ",";
-        //myfile << "currentState" << ","; // ???
+        myfile << "nodeAlive" << ",";
         myfile << "N" << ",";
         myfile << "value" << ",";
         myfile << "nodeRole" << ",";
         myfile << "maxPromisedN" << ",";
-        myfile << "maxAcceptedN" << ",";
         myfile << "consensusValue" << ",";
-        myfile << "nodeAlive" << ",";
         myfile << "currentAction" << ",";
         return 1;
     }
