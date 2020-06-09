@@ -21,7 +21,9 @@ private:
 	int role;
 	int v;
 	int n;
+	int state;
 	PaxosNodeLogger *log;
+	
 	std::mutex network_lock;
 	std::mutex queue_lock;
 	std::queue<message *> messages;
@@ -104,7 +106,6 @@ private:
 
 
 			clear_network ();
-
 			log->ResumeFromCrash ();
 			network_lock.unlock ();
 		}
@@ -131,7 +132,8 @@ private:
 	}
 
 	void check_consensus () {
-		if ((role & LEARNER)&& (role & PROPOSER)) {
+		if ((role & LEARNER)&& (role & PROPOSER) &&
+			state == PROPOSING) {
 			int valid_votes = 0;
 			for (int i = 0; i < votes.size (); i++){
 				if (votes [i]->v == v && votes [i]->n == n){
@@ -165,9 +167,7 @@ private:
 			votes.clear ();
 		}
 		prepare_acks.clear ();
-		v = NO_VALUE;
-
-
+		state = NO_VALUE;
 	}
 
 
@@ -182,8 +182,10 @@ private:
 			send_message (0, &m);
 			network_lock.unlock ();
 			prepare_acks.push_back (id);
+			state = PREPARING;
+			timeout = time(0);
+			simulate_crash ();
 
-			/* TODO - LOG PREPARE */
 		}
 	}
 
@@ -193,28 +195,29 @@ private:
 			return;
 		}
 
-		/* TODO - Change placeholder value */
-		v = 5;
+		state = PROPOSING;
+
+		if (v == NO_VALUE){
+			v = rand () % 250;
+		}
+
 		message m (id, -1, v, n, MSG_PROPOSE);
 		network_lock.lock ();
 		send_message (0, &m);
 		network_lock.unlock ();
+		timeout  = time(0);
+		simulate_crash ();
 
-		/* TODO - LOG PROPOSE */
+
 
 	}
 
 	void proposer_state_update () {
 		if ((role & PROPOSER)){
-			if (prepare_acks.size () == 0 && v == NO_VALUE){
+			if (prepare_acks.size () == 0 && state == NO_VALUE){
 				prepare ();
-				v = PREPARING;
-				simulate_crash ();
-				timeout = time(0);
-			} else if (votes.size () == 0 && v == PREPARING) {
+			} else if (votes.size () == 0 && state == PREPARING) {
 				propose ();
-				simulate_crash ();
-				timeout  = time(0);
 			}
 
 		}
@@ -230,20 +233,12 @@ private:
 			case MSG_PREPARE: {
 				if (m->round > n) {
 					n = m->round;
-					v = NO_VALUE;
-					reponse_code = ACK_ACC;
-				} else {
-					reponse_code = ACK_REJ;
-				}
-
-				v = PREPARING;
-				
-				message response (id, m->sender, reponse_code, n, MSG_PREPARE_ACK);
-				
+				} 
+				state = PREPARING;
+				message response (id, m->sender, v, n, MSG_PREPARE_ACK);
 				network_lock.lock ();
 				send_message (0, &response);
 				network_lock.unlock ();
-				/* TODO - LOG PREPARE ACK */
 				break; 
 			}
 
@@ -251,40 +246,41 @@ private:
 
 				if (m->round > n){
 					n = m->round;
-					v = NO_VALUE;
+					state = NO_VALUE;
 					clear_responses ();
-				} else if (m->value == ACK_ACC){
-					if (m->round == n){
-						bool already_voted = false;
-						for (int i = 0; i < prepare_acks.size (); i++){
-							if (prepare_acks [i] == m->sender){
-								already_voted = true;
-								break;
-							}
+				} else if (m->round == n){
+					bool already_voted = false;
+					for (int i = 0; i < prepare_acks.size (); i++){
+						if (prepare_acks [i] == m->sender){
+							already_voted = true;
+							break;
 						}
-						if (!already_voted){
-							prepare_acks.push_back (m->sender);
+					}
+					if (!already_voted){
+						prepare_acks.push_back (m->sender);
+						if (v < m->value){
+							v = m->value;
 						}
-					} else {
-						message response (id, m->sender, NO_VALUE, n, MSG_UPDATE);
-						network_lock.lock ();
-						send_message (0, &response);
-						network_lock.unlock ();
-						/* TODO - LOG UPDATE MESSAGE */
-					} 
+					}
+
+				} else {
+					message response (id, m->sender, NO_VALUE, n, MSG_UPDATE);
+					network_lock.lock ();
+					send_message (0, &response);
+					network_lock.unlock ();
+					 
 				}
 				break;
 			}
 
 			case MSG_PROPOSE: {
-				int response_code;
-				if (m->round == n && v == PREPARING){
+				int res_val = NO_VALUE;
+				if (m->round == n && state == PREPARING &&
+					m->value >= v){
 					v = m->value;
-					response_code = ACK_ACC;
-				} else {
-					response_code = ACK_REJ;
-				}
-				message response (id, m->sender, response_code, n, MSG_PROPOSE_ACK);
+					res_val = v;
+				} 
+				message response (id, m->sender, res_val, n, MSG_PROPOSE_ACK);
 				network_lock.lock ();
 				send_message (0, &response);
 				network_lock.unlock ();
@@ -294,7 +290,7 @@ private:
 			case MSG_PROPOSE_ACK: {
 				if (m->round > n){
 					n = m->round;
-					v = NO_VALUE;
+					state = NO_VALUE;
 					clear_responses ();
 				} else if (m->round < n){
 					message response (id, m->sender, NO_VALUE, n, MSG_UPDATE);
@@ -306,10 +302,7 @@ private:
 					vote *vo = (vote *) malloc (sizeof (vote));
 					vo->node = m->sender;
 					vo->n = m->round;
-					if (m->value == ACK_ACC)
-						vo->v = v;
-					else 
-						vo->v = NO_VALUE;
+					vo->v = m->value;
 					votes.push_back (vo);
 				} 
 				break;
@@ -318,7 +311,7 @@ private:
 			case MSG_UPDATE: {
 				if (m->round > n){
 					n = m->round;
-					v = NO_VALUE;
+					state = NO_VALUE;
 					clear_responses ();
 				}
 				break; 
@@ -352,6 +345,7 @@ public:
 		num_nodes = m->value;
 		n = 0;
 		v = NO_VALUE;
+		state = NO_VALUE;
 		log = new PaxosNodeLogger (id);
 	}
 

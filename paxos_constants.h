@@ -11,9 +11,12 @@
 
 /* State Constants. */
 #define NO_VALUE -1
-#define PREPARING -4
 #define CONSENSUS -2
 #define KILL_PROCESS -3
+#define PREPARING -4
+#define PROPOSING -5
+#define PREPARED -6
+
 
 /* Uniquely Idenfity the Controller
    in log files. */
@@ -26,10 +29,9 @@
 #define CRASH_ENTRY 2
 #define RESUME_ENTRY 3
 
-
 /* Crash Constants. */
 #define TIMEOUT 2
-#define P_CRASH 3
+#define P_CRASH 25
 #define C_DIST 15
 
 enum MSG_TYPE {MSG_INIT, MSG_PREPARE, MSG_PREPARE_ACK, 
