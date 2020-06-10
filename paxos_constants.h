@@ -37,7 +37,7 @@
 /* Crash Constants. */
 #define TIMEOUT 8
 #define CRASH_DUR 2
-#define P_CRASH 20
+#define P_CRASH 5
 #define C_DIST 2
 
 enum MSG_TYPE {MSG_INIT, MSG_PREPARE, MSG_PREPARE_ACK, 

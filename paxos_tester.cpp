@@ -56,7 +56,7 @@ void proposer_count_performance (int num){
 
 int main (int argc, char *argv[]){
 	std::cout << atoi (argv[1]) << std::endl;
-	proposer_count_performance (atoi (argv[1]));
+	node_count_performance (atoi (argv[1]));
 	return 0;
 
 }
