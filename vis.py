@@ -4,10 +4,11 @@ import math
 import time
 import os
 import platform
-#InputLogFileName = "C:\\Users\\sidsc\\source\\repos\\Paxos\\plan\\nodelog2.csv"
-InputLogFileName = "./nodelog-1.csv"
+import webbrowser
+chrome_path = 'open -a /Applications/Google\ Chrome.app %s'
+#InputLogFileName = "C:\\Users\\sidsc\\source\\repos\\Paxos\\plan\\nodelog1.csv"
+InputLogFileName = "nodelog-1.csv"
 OutputHtmlFileName = "Result.html"
-
 def AddHtmlStart(content):
     result  = "<html>" +  content
     return result
@@ -74,6 +75,7 @@ newRowShowGap = 0.750 # 750 ms
 
 def creation_date(path_to_file):
     return os.path.getmtime(path_to_file)
+
 # Generate a list of all node names Node0, Node1 ... and so on
 def GetNodeList(df):
     nodelist = list()
@@ -89,7 +91,11 @@ def GetNodeList(df):
           nodelist.append(nodename)
     return nodelist
 lastmodificationtime = 0
-for i in range(1, 3):
+webbrowser.get(chrome_path).open("./visual.html")
+while(1):
+    if not os.path.isfile(InputLogFileName):
+        time.sleep(nextFileReadTimegap) # Sleep for 3 seconds if file not exists.
+        continue
     newmodificationtime = creation_date(InputLogFileName);
     if(lastmodificationtime == newmodificationtime):
         time.sleep(nextFileReadTimegap)
@@ -171,6 +177,6 @@ for i in range(1, 3):
         strbody = boundBodyTag(strTable)
         strResult = strhead + strbody
         strResult = boundHtmlTag(strResult)
-        hs = open("test3.html", 'w')
+        hs = open("visual.html", 'w')
         hs.write(strResult)
         hs.close()

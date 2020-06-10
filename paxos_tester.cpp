@@ -53,10 +53,13 @@ void proposer_count_performance (int num){
 	dump_results (run_paxos (15, num), to_string (15) + "n-" + to_string (num) + "p" );
 }
 
+void dynamic_count_performance (int n, int p){
+	dump_results (run_paxos (n, p), to_string (n) + "n-" + to_string (p) + "p" );
+}
+
 
 int main (int argc, char *argv[]){
-	//std::cout << atoi (argv[1]) << std::endl;
-	node_count_performance (5);
+	sleep (5);
+	dynamic_count_performance (atoi (argv[1]), atoi (argv[2]));
 	return 0;
-
 }
