@@ -111,6 +111,7 @@ while(1):
         if(idx >= countOfRowsProcessed): # only wait for next row which has not been shown before, using earlier file fragment.
             time.sleep(newRowShowGap)
         df = logdata.iloc[0:idx]
+        #df = df.sort_values(by='timeStamp', ascending=True)
         
         # Generate a list of all node names Node0, Node1 ... and so on
         nodelist = GetNodeList(df)

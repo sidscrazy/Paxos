@@ -110,23 +110,26 @@ private:
 			/* Don't sleep while holding locks. It's fine
 			   to just modify system state accordingly when
 			   waking up. */
+			network_lock.lock ();
+			log->Crash ();
+			notify_crash (CRASH_ENTRY);
+			network_lock.unlock ();
+
 			int crash_duration = (rand () % (CRASH_DUR * 3) ) + 1;
 			sleep (crash_duration);
 
 			network_lock.lock ();
-			log->Crash ();
-			notify_crash (CRASH_ENTRY);
+			queue_lock.lock ();
+			while (!messages.empty ()) {
+				message *m = messages.front ();
+				messages.pop ();
+				free (m);
+			}
+			queue_lock.unlock ();
 			/* Machine Failure. Clear all current
 			   state and then recover from log. */
 			if (crash_type < crash_dist) {
 				clear_responses ();
-				queue_lock.lock ();
-			    while (!messages.empty ()) {
-					message *m = messages.front ();
-					messages.pop ();
-					free (m);
-				}
-				queue_lock.unlock ();
 			}
 
 
