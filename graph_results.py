@@ -12,7 +12,7 @@ NODE_SCALE_LOW_FAIL = [(5, 0.793652),
 (30,3.14768)
 (35,5.5033)
 (40, 8.32407)
-(45,)
+(45, 8.73985)
 (50,)
 ]
 #1-8 proposers, 15 nodes. 
@@ -39,3 +39,5 @@ def plot (data, xr, yr, xl, yl, title, f):
 	plt.title('title')
 	plt.savefig(f)
 	plt.show ()
+
+plot (NODE_SCALE_LOW_FAIL, )

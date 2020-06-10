@@ -21,8 +21,6 @@ std::chrono::duration<double> run_paxos (int n, int p){
 		pc->clear_memory ();
 		delete pc;
 		total += diff;
-
-		//system("killall node");
 		std::cout << "cur avg "  << (total / (i + 1)).count () << " seconds." << std::endl;
 	}
 
@@ -48,7 +46,7 @@ void dump_results (std::chrono::duration<double>  avg, string test){
 
 
 void node_count_performance (){
-	for (int i = DEFAULT_NODES * 9; i < 11 * DEFAULT_NODES; i += DEFAULT_NODES){
+	for (int i = DEFAULT_NODES * 10; i < 11 * DEFAULT_NODES; i += DEFAULT_NODES){
 		dump_results (run_paxos (i, DEFAULT_PROPOSERS), to_string (i) + "n-" + to_string (DEFAULT_PROPOSERS) + "p" );
 	}
 }
