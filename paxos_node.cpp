@@ -23,6 +23,7 @@ private:
 	int v;
 	int n;
 	int state;
+	bool proposed_v = false;
 	PaxosNodeLogger *log;
 	
 	std::mutex network_lock;
@@ -109,7 +110,7 @@ private:
 			/* Don't sleep while holding locks. It's fine
 			   to just modify system state accordingly when
 			   waking up. */
-			int crash_duration = (rand () % (TIMEOUT * 3) ) + 1;
+			int crash_duration = (rand () % (CRASH_DUR * 3) ) + 1;
 			sleep (crash_duration);
 
 			network_lock.lock ();
@@ -222,6 +223,8 @@ private:
 			return;
 		}
 
+		proposed_v = true;
+
 		state = PROPOSING;
 
 		if (v == NO_VALUE){
@@ -287,7 +290,7 @@ private:
 					}
 					if (!already_voted){
 						prepare_acks.push_back (m->sender);
-						if (v < m->value){
+						if (v < m->value && !proposed_v){
 							v = m->value;
 						}
 					}
@@ -304,9 +307,10 @@ private:
 
 			case MSG_PROPOSE: {
 				if (m->round == n && state == PREPARING &&
-					m->value >= v){
+					((m->value >= v && !proposed_v) || (m->value == v && proposed_v)) ){
 					v = m->value;
 					state = PROPOSING;
+					proposed_v = true;
 				} 
 				message response (id, m->sender, v, n, MSG_PROPOSE_ACK);
 				network_lock.lock ();
@@ -360,7 +364,10 @@ private:
 		}
 
 		free (m);
-		simulate_crash ();
+		if (!(role & PROPOSER)){
+			simulate_crash ();
+		}
+		
 	}
 
 public:

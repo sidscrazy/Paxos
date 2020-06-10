@@ -180,6 +180,14 @@ public:
 
 	}
 
+	void clear_memory (){
+		children.erase (children.begin (), children.end ());
+		sockets.erase (sockets.begin (), sockets.end ());
+		threads.erase (threads.begin (), threads.end ());
+		mutexes.clear ();
+		delete log;
+	}
+
 	void end_simulation (){
 		int status;
 		char buf[1024];
@@ -188,6 +196,6 @@ public:
 			waitpid (children[i], &status, 0);
 		}
 		log->CloseLogFile ();
-		std::cout << "Simulation Complete" << std::endl;
+		//std::cout << "Simulation Complete" << std::endl;
 	}
 };
