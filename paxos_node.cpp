@@ -109,7 +109,7 @@ private:
 			/* Don't sleep while holding locks. It's fine
 			   to just modify system state accordingly when
 			   waking up. */
-			int crash_duration = (rand () % (TIMEOUT * 3) ) + 1;
+			int crash_duration = (rand () % (CRASH_DUR * 3) ) + 1;
 			sleep (crash_duration);
 
 			network_lock.lock ();

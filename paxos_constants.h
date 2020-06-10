@@ -35,7 +35,8 @@
 #define RESUME_ENTRY 3
 
 /* Crash Constants. */
-#define TIMEOUT 2
+#define TIMEOUT 8
+#define CRASH_DUR 2
 #define P_CRASH 5
 #define C_DIST 2
 
