@@ -177,7 +177,7 @@ private:
 					valid_votes++;
 				}
 			}
-			if (valid_votes > num_nodes / 2) {
+			if (valid_votes > (num_nodes % 2 == 0 ? num_nodes / 2 : 1 + (num_nodes / 2))) {
 				message cons (id, -1, v, n, MSG_CONSENSUS);
 				network_lock.lock ();
 				send_message (0, &cons);
@@ -222,7 +222,7 @@ private:
 
 	void propose (){
 
-		if ((num_nodes / 2) > prepare_acks.size ()){
+		if ((num_nodes % 2 == 0 ? num_nodes / 2 : 1 + (num_nodes / 2)) > prepare_acks.size ()){
 			return;
 		}
 
