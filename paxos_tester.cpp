@@ -52,8 +52,8 @@ void node_count_performance (){
 }
 
 void proposer_count_performance (){
-	for (int i = DEFAULT_PROPOSERS; i < 9 * DEFAULT_PROPOSERS; i++){
-		dump_results (run_paxos (15, DEFAULT_PROPOSERS), to_string (20) + "n-" + to_string (i) + "p" );
+	for (int i = DEFAULT_PROPOSERS * 5; i < 9 * DEFAULT_PROPOSERS; i++){
+		dump_results (run_paxos (15, DEFAULT_PROPOSERS), to_string (15) + "n-" + to_string (i) + "p" );
 	}
 }
 
@@ -62,8 +62,8 @@ int main (){
 	//dump_results (_default (), "5n-1p");
 	//dump_results (_default_2p (), "5n-2p");
 	//dump_results (_default_3p (), "5n-2p");
-	node_count_performance ();
-	//proposer_count_performance ();
+	//node_count_performance ();
+	proposer_count_performance ();
 	return 0;
 
 }
