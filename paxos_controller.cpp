@@ -103,6 +103,7 @@ private:
 					log_mutex.lock ();
 					log->AddMsg (m, role);
 					send_packet (sockets[receiver], m);
+					log->FlushToDisk();
 					log_mutex.unlock ();
 					mutexes[receiver].unlock ();
 				}

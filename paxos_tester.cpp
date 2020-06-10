@@ -59,7 +59,7 @@ void dynamic_count_performance (int n, int p){
 
 
 int main (int argc, char *argv[]){
-	sleep (5);
+	sleep (2);
 	dynamic_count_performance (atoi (argv[1]), atoi (argv[2]));
 	return 0;
 }

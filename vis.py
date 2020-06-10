@@ -142,8 +142,11 @@ while(1):
 
             for i in range(nodecount):
                 sendPacket = ""
-                if(nodeAlive != 1):
-                    strTable += "<td bgcolor=\"F75D59\">" + 'Crashed' + "</td>"
+                if(nodeAlive != 1 and i == nodeid):
+                    if (nodeAlive == 2):
+                        strTable += "<td bgcolor=\"F75D59\">" + 'Crashed' + "</td>"
+                    else:
+                       strTable += "<td bgcolor=\"BFEE90\">" + 'Recovery' + "</td>" 
                 elif(i == nodeid):
                     #strTable += "<td bgcolor=\"green\">" + 'Send' + "</td>"
                     sendPacket += str(N)
