@@ -29,6 +29,29 @@ PROPOSER_SCALE_LOW_FAIL = [
 (8, 1.63268)
 ]
 
+NODE_SCALE_HIGH_FAIL = [(5, -1), 
+(10, -1),
+(15, -1),
+(20,  -1),
+(25, -1),
+(30,-1),
+(35,-1),
+(40, -1),
+(45, -1),
+(50, -1),
+]
+
+PROPOSER_SCALE_HIGH_FAIL = [
+(1, -1),
+(2, -1),
+(3, -1),
+(4, -1),
+(5, -1),
+(6, -1),
+(7, -1),
+(8, -1)
+]
+
 def convert_input (inp_arr):
 	x = [a[0] for a in inp_arr]
 	y = [a[1] for a in inp_arr]
@@ -49,3 +72,5 @@ def plot (data, xr, yr, xl, yl, title, f):
 
 plot (NODE_SCALE_LOW_FAIL, (0, 60), (0, 10), "Nodes", "Average Consensus Time (Seconds)", "Performance with Increasing Node Count - Low Failure Rate", "node_low.png")
 plot (PROPOSER_SCALE_LOW_FAIL, (0, 10), (1.3, 1.8), "Proposers", "Average Consensus Time (Seconds)", "Performance with Increasing Proposer Count - Low Failure Rate", "prop_low.png")
+plot (NODE_SCALE_HIGH_FAIL, (0, 60), (0, 10), "Nodes", "Average Consensus Time (Seconds)", "Performance with Increasing Node Count - High Failure Rate", "node_high.png")
+plot (PROPOSER_SCALE_HIGH_FAIL, (0, 10), (1.3, 1.8), "Proposers", "Average Consensus Time (Seconds)", "Performance with Increasing Proposer Count - High Failure Rate", "prop_high.png")

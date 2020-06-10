@@ -45,25 +45,17 @@ void dump_results (std::chrono::duration<double>  avg, string test){
 }
 
 
-void node_count_performance (){
-	for (int i = DEFAULT_NODES * 10; i < 11 * DEFAULT_NODES; i += DEFAULT_NODES){
-		dump_results (run_paxos (i, DEFAULT_PROPOSERS), to_string (i) + "n-" + to_string (DEFAULT_PROPOSERS) + "p" );
-	}
+void node_count_performance (int num){
+	dump_results (run_paxos (num, DEFAULT_PROPOSERS), to_string (num) + "n-" + to_string (DEFAULT_PROPOSERS) + "p" );
 }
 
-void proposer_count_performance (){
-	for (int i = DEFAULT_PROPOSERS * 5; i < 9 * DEFAULT_PROPOSERS; i++){
-		dump_results (run_paxos (15, DEFAULT_PROPOSERS), to_string (15) + "n-" + to_string (i) + "p" );
-	}
+void proposer_count_performance (int num){
+	dump_results (run_paxos (15, num), to_string (15) + "n-" + to_string (num) + "p" );
 }
 
 
-int main (){
-	//dump_results (_default (), "5n-1p");
-	//dump_results (_default_2p (), "5n-2p");
-	//dump_results (_default_3p (), "5n-2p");
-	//node_count_performance ();
-	proposer_count_performance ();
+int main (int argc, char *argv[]){
+	proposer_count_performance (atoi (argv[1]));
 	return 0;
 
 }
