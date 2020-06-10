@@ -3,7 +3,9 @@ END=8
  
 for (( c=$START; c<=$END; c++ ))
 do
-	./tester c
+	killall node
+	killall node
+	./tester $c
 	killall node
 	killall node 
 done

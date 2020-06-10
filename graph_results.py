@@ -29,7 +29,8 @@ PROPOSER_SCALE_LOW_FAIL = [
 (8, 1.63268)
 ]
 
-NODE_SCALE_HIGH_FAIL = [(5, -1), 
+NODE_SCALE_HIGH_FAIL = [
+(5, -1), 
 (10, -1),
 (15, -1),
 (20,  -1),

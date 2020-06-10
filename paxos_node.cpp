@@ -360,7 +360,10 @@ private:
 		}
 
 		free (m);
-		simulate_crash ();
+		if (!(role & PROPOSER)){
+			simulate_crash ();
+		}
+		
 	}
 
 public:
