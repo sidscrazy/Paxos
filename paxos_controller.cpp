@@ -166,7 +166,7 @@ public:
 			}
 
 			int role = ACCEPTOR;
-			if (i <= proposers){
+			if (i < proposers){
 				role |= PROPOSER;
 				role |= LEARNER;
 			}

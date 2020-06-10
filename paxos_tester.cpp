@@ -8,7 +8,7 @@
 #include <ctime>
 #include <chrono>
 
-#define ATTEMPTS 25
+#define ATTEMPTS 1
 
 std::chrono::duration<double> run_paxos (int n, int p){
 	std::chrono::duration<double> total;
@@ -55,8 +55,8 @@ void proposer_count_performance (int num){
 
 
 int main (int argc, char *argv[]){
-	std::cout << atoi (argv[1]) << std::endl;
-	node_count_performance (atoi (argv[1]));
+	//std::cout << atoi (argv[1]) << std::endl;
+	node_count_performance (5);
 	return 0;
 
 }
