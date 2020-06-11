@@ -8,7 +8,7 @@
 #include <ctime>
 #include <chrono>
 
-#define ATTEMPTS 1
+#define ATTEMPTS 15
 
 std::chrono::duration<double> run_paxos (int n, int p){
 	std::chrono::duration<double> total;
@@ -59,7 +59,6 @@ void dynamic_count_performance (int n, int p){
 
 
 int main (int argc, char *argv[]){
-	sleep (2);
-	dynamic_count_performance (atoi (argv[1]), atoi (argv[2]));
+	node_count_performance (atoi (argv[1]));
 	return 0;
 }
